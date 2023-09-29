@@ -8,12 +8,15 @@ from pydub.utils import mediainfo
 from PIL import Image, ImageTk
 import time
 import re
+
 def choose_directory():
     folder_path = filedialog.askdirectory()
     return folder_path
 
+
 def clean_transcription(text):
-    return re.sub(r'.*?(usług Orange\?|swoimi słowami\?|Internet Światłowodowy\?| usługę Orange\?)\s*', '', text)
+    return re.sub(r'.*?(usług Orange\?|swoimi słowami\?|Internet Światłowodowy\?| usługę Orange\?|jej usługi\?|Swoimi słowami proszę powiedzieć.)\s*', '', text)
+
 
 def transcribe_audio(file_path):
     openai.api_key=API_KEY
@@ -27,15 +30,15 @@ def transcribe_audio(file_path):
     print(response)
     return response
 
+
 def save_to_csv(data, output_folder, mode='w'):
-    output_path = os.path.join(output_folder, "output.csv")
+    output_path = os.path.join(output_folder, "nagrania.csv")
     with open(output_path, mode, newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=";")
         if mode == 'w':  # If it's a new file, write the header
             writer.writerow(['File Name', 'Transcription'])
         for row in data:
             writer.writerow(row)
-
 
 
 def show_completion_message(processed_files_count, total_duration):
@@ -51,6 +54,7 @@ def show_completion_message(processed_files_count, total_duration):
 
     completion_window.mainloop()
 
+
 def main():
     folder_path = choose_directory()
     data = []
@@ -63,25 +67,37 @@ def main():
             full_path = os.path.join(folder_path, file_name)
             processed_files_count += 1
             file_info = mediainfo(full_path)
-            total_duration += float(file_info['duration'])
+            try:
+                total_duration += float(file_info['duration'])
+            except KeyError:
+                print(f"No duration information for {file_name}. Skipping...")
 
     # Second loop for transcribing
     transcribed_files_count = 0
+    failed_files = []
     for file_name in os.listdir(folder_path):
         if file_name.endswith('.wav'):
             full_path = os.path.join(folder_path, file_name)
-            transcription = transcribe_audio(full_path)
-            transcription = clean_transcription(transcription)
-            data.append((file_name, transcription))
+            try:
+                transcription = transcribe_audio(full_path)
+                transcription = clean_transcription(transcription)
+                data.append((file_name, transcription))
+            except Exception as e:
+                print(f"Error processing file {file_name}. Error message: {e}. Skipping...")
+                failed_files.append(file_name)
             transcribed_files_count += 1
+            # Zapisz nazwy plików z błędem do pliku
+            with open(os.path.join(folder_path, "zepsute_pliki_sprawdz.txt"), "w") as f:
+                 for file_name in failed_files:
+                    f.write(file_name + "\n")
 
-            # If transcribed_files_count is divisible by 3
+            # jeżeli liczba podzielna przez 3
             if transcribed_files_count % 3 == 0:
                 save_mode = 'a' if transcribed_files_count > 3 else 'w'  # Append if not the first batch of 3
                 save_to_csv(data, folder_path, mode=save_mode)
                 data = []  # Clear the data list for the next batch
-                print("czekam 66")
-                time.sleep(66)  # Sleep for 1.1 minutes
+                print("czekam 63")
+                time.sleep(63)  # Sleep +1min for whisper
 
     # In case there are less than 3 files left at the end
     if data:
