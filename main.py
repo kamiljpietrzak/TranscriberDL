@@ -1,6 +1,5 @@
 import os
 import csv
-import requests
 from tkinter import Tk, filedialog, Button, Label
 import openai
 from config import API_KEY #Create config.py with your api key inside
@@ -15,13 +14,13 @@ def choose_directory():
 
 
 def clean_transcription(text):
-    return re.sub(r'.*?(usług Orange\?|swoimi słowami\?|Internet Światłowodowy\?| usługę Orange\?|jej usługi\?|Swoimi słowami proszę powiedzieć.)\s*', '', text)
+    return re.sub(r'.*?(swoimi słowami\?|Internet Światłowodowy\?|jej usługi\?|nie poleciałaby Pani usługę Orange\?|Swoimi słowami proszę powiedzieć.)\s*', '', text)
 
 
 def transcribe_audio(file_path):
     openai.api_key=API_KEY
     with open(file_path, "rb") as audio_file:
-        response = openai.Audio.transcribe(
+        response = openai.audio.transcriptions.create(
             file=audio_file,
             model="whisper-1",
             response_format="text",
@@ -96,8 +95,8 @@ def main():
                 save_mode = 'a' if transcribed_files_count > 3 else 'w'  # Append if not the first batch of 3
                 save_to_csv(data, folder_path, mode=save_mode)
                 data = []  # Clear the data list for the next batch
-                print("czekam 63")
-                time.sleep(63)  # Sleep +1min for whisper
+                print("czekam 5")
+                time.sleep(5)  # Sleep +5sec for whisper
 
     # In case there are less than 3 files left at the end
     if data:
