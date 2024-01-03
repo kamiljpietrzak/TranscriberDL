@@ -12,9 +12,9 @@ def choose_directory():
     folder_path = filedialog.askdirectory()
     return folder_path
 
-
+#dodałem swoimi słowami. -> weryfikacja czy to czegoś nie skopało
 def clean_transcription(text):
-    return re.sub(r'.*?(swoimi słowami\?|Internet Światłowodowy\?|jej usługi\?|nie poleciałaby Pani usługę Orange\?|Swoimi słowami proszę powiedzieć.)\s*', '', text)
+    return re.sub(r'.*?(swoimi słowami\?|swoimi słowami.\?|Internet Światłowodowy\?|jej usługi\?|nie poleciałaby Pani usługę Orange\?|Swoimi słowami proszę powiedzieć.)\s*', '', text)
 
 
 def transcribe_audio(file_path):
